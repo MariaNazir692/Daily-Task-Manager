@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:daily_task_manager/res/color.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import '../../services/notification_Services.dart';
 
@@ -23,7 +24,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var notifyHelper;
+  // var notifyHelper;
   DateTime _selectedDate = DateTime.now();
 
   TaskController taskController = Get.put(TaskController());
@@ -33,11 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    NotificationService.initializeNotification();
-    notifyHelper = NotifyHelper();
-    notifyHelper.requestIOSPermissions();
-    notifyHelper.initNotification();
-
+    taskController.getTask();
+    tz.initializeTimeZones();
+    NotificationService().initNotification();
   }
 
   @override
@@ -52,16 +51,12 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
           onPressed: () async{
             themeServices().switchTheme();
-            await NotificationService.showNotification(
-              title: "Title of the notification",
-              body: "Body of the notification",
+            await NotificationService().showNotification(
+              title: "Daily Task Manager",
+              body: Get.isDarkMode
+                  ? "Light Mode is Activated"
+                  : "Dark Mode is activated",
             );
-            notifyHelper.displayNotification(
-                title: "Theme Activated",
-                body: Get.isDarkMode
-                    ? "Dark Mode is Activated"
-                    : "Light Mode is activated");
-            // notifyHelper.scheduledNotification();
           },
           icon: Icon(
             Get.isDarkMode
@@ -100,45 +95,48 @@ class _HomeScreenState extends State<HomeScreen> {
       return ListView.builder(
           itemCount: taskController.taskList.length,
           itemBuilder: (_, index) {
-            TaskModel task=taskController.taskList[index];
-            print(task.toJson());
-            if(task.repeat=="Daily"){
-              print(task.repeat);
-              DateTime date=DateFormat.jm().parse(task.startTime.toString());
-              var myTime=DateFormat('HH:MM').format(date);
-              int hours = int.parse(myTime.toString().split(":")[0]);
-              int minutes = int.parse(myTime.toString().split(":")[1]);
+            TaskModel task = taskController.taskList[index];
+            final timeFormat = DateFormat('h:mm a');
+            final startTime = timeFormat.parse(task.startTime.toString());
 
-              final startTime = DateFormat.jm().parse(task.startTime.toString());
-              NotificationService.showScheduledNotification(
-              title: 'Scheduled notification',
-              body: 'This notification is scheduled to appear at $startTime.',
-              startTime: startTime,
-              );
+            final scheduledDateTime = DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day,
+              startTime.hour,
+              startTime.minute,
+            );
 
-              notifyHelper.scheduledNotification(
-                int.parse(myTime.toString().split(":")[0]),
-                int.parse(myTime.toString().split(":")[1]),
-                task,
-              );
-              return AnimationConfiguration.staggeredList(
-                  position: index,
-                  child: SlideAnimation(
-                    child: FadeInAnimation(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheet(
-                                  context, task);
-                            },
-                            child: TaskTile(task),
-                          )
-                        ],
-                      ),
+
+            NotificationService().scheduleNotification(
+              scheduledNotificationDateTime: scheduledDateTime,
+              title: 'Scheduled Notification',
+              body: 'Notification',
+              id: task.id!,
+              model: task,
+            );
+            print(task.repeat);
+              if(task.repeat=="Daily"){
+            print("Task is repeated daily");
+
+            return AnimationConfiguration.staggeredList(
+                position: index,
+                child: SlideAnimation(
+                  child: FadeInAnimation(
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            _showBottomSheet(
+                                context, task);
+                          },
+                          child: TaskTile(task),
+                        )
+                      ],
                     ),
-                  ));
-            }
+                  ),
+                ));
+          }
             if(task.date==DateFormat.yMd().format(_selectedDate)){
               return AnimationConfiguration.staggeredList(
                   position: index,

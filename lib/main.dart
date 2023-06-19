@@ -6,8 +6,10 @@ import 'package:daily_task_manager/utils/theme/app_theme.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get_storage/get_storage.dart';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await DBHelper.dbInit();
   await GetStorage.init();
   runApp(const MyApp());

@@ -49,7 +49,7 @@ class TaskModel{
     data['endTime']=this.endTime;
     data['color']=this.color;
     data['remind']=this.remind;
-    data['repeat']=this.remind;
+    data['repeat']=this.repeat;
     return data;
    }
 }

@@ -9,6 +9,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:daily_task_manager/res/color.dart';
 
+import '../../services/notification_Services.dart';
+
 class addTaskPage extends StatefulWidget {
   const addTaskPage({Key? key}) : super(key: key);
 
@@ -195,6 +197,11 @@ int selectedColor=0;
                       text: 'Create Task',
                       onPress: () {
                         _validateData();
+                        // TaskModel task=TaskModel();
+                        // final startTime = DateFormat.jm().parse(task.startTime.toString());
+                        // NotificationService().scheduleNotification(
+                        //   scheduledNotificationDateTime: startTime, title: 'Scheduled Notification',
+                        //   body: 'Notification',);
                       })
                 ],
               )
@@ -289,18 +296,18 @@ int selectedColor=0;
 
   _getTimeFromUSer({required bool isStartTime}) async {
     var _pickedTime = await _showTimePicker();
-    String _formatedTime = _pickedTime.format(context);
+    String formatedTime = _pickedTime.format(context);
     if (_pickedTime == null) {
       if (kDebugMode) {
         print('time not selected');
       }
     } else if (isStartTime == true) {
       setState(() {
-        _startTime = _formatedTime;
+        _startTime = formatedTime;
       });
     } else if (isStartTime == false) {
       setState(() {
-        _endTime = _formatedTime;
+        _endTime = formatedTime;
       });
     }
   }
